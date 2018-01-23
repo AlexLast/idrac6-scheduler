@@ -57,22 +57,17 @@ class Scheduler:
             raise Exception('Unable to get valid appwebSessionId')
         return cookie.split(';')[0]
 
-    def power_on(self):
+    def power(self, action):
         """
-        Powers the server ON
+        Powers the server on or off
         """
+        if action == 'on':
+            state = 1
+        else:
+            state = 0
+        
         self._drac_call(
-            url='https://{}/data?set=pwState:1'.format(self.ip),
-            data={},
-            headers={'Cookie': self.session_id}
-        )
-
-    def power_off(self):
-        """
-        Powers the server OFF
-        """
-        self._drac_call(
-            url='https://{}/data?set=pwState:0'.format(self.ip),
+            url='https://{}/data?set=pwState:{}'.format(self.ip, state),
             data={},
             headers={'Cookie': self.session_id}
         )
@@ -93,6 +88,6 @@ if __name__ == '__main__':
     scheduler = Scheduler(args.username, args.password, args.ip)
 
     if args.action == 'power_on':
-        scheduler.power_on()
+        scheduler.power('on')
     elif args.action == 'power_off':
-        scheduler.power_off()
+        scheduler.power('off')
