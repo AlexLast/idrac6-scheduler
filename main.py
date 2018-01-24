@@ -3,6 +3,10 @@ import argparse
 
 from collections import OrderedDict
 
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from requests.packages.urllib3.exceptions import InsecurePlatformWarning
+from requests.packages.urllib3.exceptions import SNIMissingWarning
+
 
 class Scheduler:
 
@@ -54,7 +58,7 @@ class Scheduler:
         cookie = response.headers.get('Set-Cookie', None)
 
         if not cookie:
-            raise Exception('Unable to get valid appwebSessionId')
+            raise Exception('Unable to get valid appwebSessionId, generally this is due to > 5 sessions already open')
         return cookie.split(';')[0]
 
     def power(self, action):
@@ -84,6 +88,14 @@ if __name__ == '__main__':
     valid_actions = ['power_on', 'power_off']
     if args.action not in valid_actions:
         raise Exception('Invalid action: {}, must be one of: {}'.format(args.action, ', '.join(valid_actions)))
+
+    """
+    The iDRAC uses a self-signed certificate and verify=False, this disables any warnings
+    when making requests to the iDRAC
+    """
+    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+    requests.packages.urllib3.disable_warnings(InsecurePlatformWarning)
+    requests.packages.urllib3.disable_warnings(SNIMissingWarning)
 
     scheduler = Scheduler(args.username, args.password, args.ip)
 
